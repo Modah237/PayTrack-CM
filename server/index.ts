@@ -27,16 +27,40 @@ app.use(cors());
 // Need raw body for webhooks signatures if required
 app.use(express.json());
 
-// --- Production: Serving static files ---
-const publicPath = path.resolve(__dirname, '../dist');
-console.log(`[Server] Initializing static serving from: ${publicPath}`);
+const DIST_PATH = path.resolve(__dirname, '../dist');
+console.log(`[Server] Production diagnostics:`);
+console.log(`- Base directory: ${__dirname}`);
+console.log(`- Dist directory: ${DIST_PATH}`);
 
-// Serve static files BEFORE API routes to ensure assets are found
-app.use(express.static(publicPath));
+if (fs.existsSync(DIST_PATH)) {
+  console.log('[Server] Dist folder validated.');
+  const files = fs.readdirSync(DIST_PATH);
+  console.log(`[Server] Found files: ${files.join(', ')}`);
+} else {
+  console.error('[Server] CRITICAL: Dist folder missing at launch!');
+}
 
-// Main entry point logic
+// 1. Explicitly serve static assets first
+app.use('/assets', express.static(path.join(DIST_PATH, 'assets'), {
+  immutable: true,
+  maxAge: '1y'
+}));
+
+// 2. Serve other static files (favicon, etc)
+app.use(express.static(DIST_PATH));
+
+// 3. API Routes
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'PayTrack CM API is running.', env: process.env.NODE_ENV });
+});
+
+app.get('/api/debug-files', (req, res) => {
+  try {
+    const list = fs.readdirSync(DIST_PATH);
+    res.json({ path: DIST_PATH, files: list });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.use('/api/auth', authRoutes);
@@ -46,14 +70,12 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/reminders', reminderRoutes);
 app.use('/api/webhooks', webhookRoutes);
 
-// Catch-all route for SPA - must check if it's an API call or a file request
+// 4. Catch-all for SPA (MUST be at the very end)
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api')) {
-    return res.status(404).json({ error: 'API route not found' });
+    return res.status(404).json({ error: 'Endpoint non trouvé' });
   }
-  
-  const filePath = path.join(publicPath, 'index.html');
-  res.sendFile(filePath);
+  res.sendFile(path.join(DIST_PATH, 'index.html'));
 });
 
 // General Error Handler
