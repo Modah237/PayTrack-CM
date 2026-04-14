@@ -1,0 +1,7 @@
+# Force install ALL dependencies (including devDependencies)
+# even when NODE_ENV=production is set in Railway
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = ["npm run build"]
