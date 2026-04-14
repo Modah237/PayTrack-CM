@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import cron from 'node-cron';
 import axios from 'axios';
+import fs from 'fs';
 
 import authRoutes from './routes/auth';
 import clientRoutes from './routes/clients';
@@ -41,14 +42,26 @@ app.use('/api/webhooks', webhookRoutes);
 // --- Production: Serving static files ---
 if (process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT) {
   const publicPath = path.resolve(__dirname, '../dist');
-  console.log(`[Server] Serving static files from: ${publicPath}`);
+  console.log(`[Server] Production mode detected.`);
+  console.log(`[Server] Checking dist folder at: ${publicPath}`);
   
-  app.use(express.static(publicPath));
+  if (fs.existsSync(publicPath)) {
+    console.log('[Server] Dist folder found. Serving static files.');
+    app.use(express.static(publicPath));
+  } else {
+    console.error('[Server] CRITICAL: Dist folder NOT found at path. Build might have failed or path is wrong.');
+  }
 
   app.get('*', (req, res) => {
-    // Only serve index.html if it's not an API call
-    if (!req.path.startsWith('/api')) {
+    // Only serve index.html if it's not an API call AND doesn't look like a file request (contains no dot)
+    // This prevents serving HTML when the browser asks for a missing .js or .css file
+    const isFileRequest = req.path.includes('.');
+    
+    if (!req.path.startsWith('/api') && !isFileRequest) {
       res.sendFile(path.join(publicPath, 'index.html'));
+    } else if (isFileRequest && !req.path.startsWith('/api')) {
+      // If it's a missing file request, return 404 properly
+      res.status(404).end();
     }
   });
 }
