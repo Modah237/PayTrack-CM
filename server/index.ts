@@ -27,9 +27,16 @@ app.use(cors());
 // Need raw body for webhooks signatures if required
 app.use(express.json());
 
+// --- Production: Serving static files ---
+const publicPath = path.resolve(__dirname, '../dist');
+console.log(`[Server] Initializing static serving from: ${publicPath}`);
+
+// Serve static files BEFORE API routes to ensure assets are found
+app.use(express.static(publicPath));
+
 // Main entry point logic
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'PayTrack CM API is running.' });
+  res.json({ status: 'ok', message: 'PayTrack CM API is running.', env: process.env.NODE_ENV });
 });
 
 app.use('/api/auth', authRoutes);
@@ -39,32 +46,15 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/reminders', reminderRoutes);
 app.use('/api/webhooks', webhookRoutes);
 
-// --- Production: Serving static files ---
-if (process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT) {
-  const publicPath = path.resolve(__dirname, '../dist');
-  console.log(`[Server] Production mode detected.`);
-  console.log(`[Server] Checking dist folder at: ${publicPath}`);
-  
-  if (fs.existsSync(publicPath)) {
-    console.log('[Server] Dist folder found. Serving static files.');
-    app.use(express.static(publicPath));
-  } else {
-    console.error('[Server] CRITICAL: Dist folder NOT found at path. Build might have failed or path is wrong.');
+// Catch-all route for SPA - must check if it's an API call or a file request
+app.get('*', (req, res) => {
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ error: 'API route not found' });
   }
-
-  app.get('*', (req, res) => {
-    // Only serve index.html if it's not an API call AND doesn't look like a file request (contains no dot)
-    // This prevents serving HTML when the browser asks for a missing .js or .css file
-    const isFileRequest = req.path.includes('.');
-    
-    if (!req.path.startsWith('/api') && !isFileRequest) {
-      res.sendFile(path.join(publicPath, 'index.html'));
-    } else if (isFileRequest && !req.path.startsWith('/api')) {
-      // If it's a missing file request, return 404 properly
-      res.status(404).end();
-    }
-  });
-}
+  
+  const filePath = path.join(publicPath, 'index.html');
+  res.sendFile(filePath);
+});
 
 // General Error Handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
