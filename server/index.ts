@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
 import path from 'path';
 import cron from 'node-cron';
 import axios from 'axios';
@@ -12,7 +13,10 @@ import paymentRoutes from './routes/payments';
 import reminderRoutes from './routes/reminders';
 import webhookRoutes from './routes/webhooks';
 
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -36,12 +40,15 @@ app.use('/api/webhooks', webhookRoutes);
 
 // --- Production: Serving static files ---
 if (process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT) {
-  const __dirname = path.resolve();
-  app.use(express.static(path.join(__dirname, 'dist')));
+  const publicPath = path.resolve(__dirname, '../dist');
+  console.log(`[Server] Serving static files from: ${publicPath}`);
+  
+  app.use(express.static(publicPath));
 
   app.get('*', (req, res) => {
+    // Only serve index.html if it's not an API call
     if (!req.path.startsWith('/api')) {
-      res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+      res.sendFile(path.join(publicPath, 'index.html'));
     }
   });
 }
