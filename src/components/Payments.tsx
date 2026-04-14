@@ -5,7 +5,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { mockPayments } from '../mockData'; // Fallback if empty
 import { PaymentMethod } from '../types';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
@@ -95,7 +94,7 @@ export function Payments() {
               <TrendingUp className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-slate-900">{mockPayments.length}</p>
+              <p className="text-2xl font-bold text-slate-900">{dbPayments.length}</p>
               <p className="text-xs text-slate-500 mt-0.5">Transactions reçues</p>
             </div>
           </CardContent>

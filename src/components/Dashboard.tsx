@@ -15,7 +15,7 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell,
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip
 } from 'recharts';
-import { chartData, mockStats } from '../mockData'; // keep static chartData for now
+import { chartData } from '../mockData'; // static fallback for area chart
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
 import { api } from '../lib/api';
@@ -24,66 +24,12 @@ interface DashboardProps {
   onNavigate?: (tab: string) => void;
 }
 
-const RADIAN = Math.PI / 180;
-const pieData = [
-  { name: 'Recouvré', value: mockStats.recoveredThisMonth, color: '#22c55e' },
-  { name: 'En retard', value: mockStats.overdueAmount, color: '#ef4444' },
-  { name: 'En attente', value: mockStats.totalReceivable - mockStats.recoveredThisMonth - mockStats.overdueAmount, color: '#f59e0b' },
-];
-
 const statusConfig = {
   paid: { label: 'Payée', className: 'bg-emerald-100 text-emerald-700' },
   pending: { label: 'En attente', className: 'bg-amber-100 text-amber-700' },
   overdue: { label: 'En retard', className: 'bg-red-100 text-red-700' },
   partially_paid: { label: 'Partielle', className: 'bg-blue-100 text-blue-700' },
 };
-
-const kpiCards = [
-  {
-    title: 'Total à recevoir',
-    value: `${mockStats.totalReceivable.toLocaleString()} XAF`,
-    delta: '+12% vs mois dernier',
-    deltaPositive: true,
-    icon: Wallet,
-    accent: 'bg-blue-500',
-    iconBg: 'bg-blue-50 text-blue-600',
-  },
-  {
-    title: 'Recouvré (Mois)',
-    value: `${mockStats.recoveredThisMonth.toLocaleString()} XAF`,
-    delta: '+8% vs mois dernier',
-    deltaPositive: true,
-    icon: CheckCircle2,
-    accent: 'bg-emerald-500',
-    iconBg: 'bg-emerald-50 text-emerald-600',
-  },
-  {
-    title: 'En retard',
-    value: `${mockStats.overdueAmount.toLocaleString()} XAF`,
-    delta: '+5% vs mois dernier',
-    deltaPositive: false,
-    icon: Clock,
-    accent: 'bg-red-500',
-    iconBg: 'bg-red-50 text-red-600',
-  },
-  {
-    title: 'Taux de recouvrement',
-    value: `${mockStats.recoveryRate}%`,
-    delta: `${mockStats.avgCollectionDays}j délai moyen`,
-    deltaPositive: true,
-    icon: TrendingUp,
-    accent: 'bg-indigo-500',
-    iconBg: 'bg-indigo-50 text-indigo-600',
-    isProgress: true,
-    progressValue: mockStats.recoveryRate,
-  },
-];
-
-const secondaryKpis = [
-  { label: 'Clients actifs', value: mockStats.activeClients, icon: Users, color: 'text-blue-600' },
-  { label: 'Relances en attente', value: mockStats.pendingReminders, icon: Zap, color: 'text-amber-600' },
-  { label: 'Encaissement prévu 30j', value: `${(mockStats.projectedCashIn30Days / 1000000).toFixed(1)}M XAF`, icon: CalendarClock, color: 'text-indigo-600' },
-];
 
 const onboardingSteps = [
   { id: 'client', label: 'Ajoutez votre premier client' },

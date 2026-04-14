@@ -13,6 +13,7 @@ import invoiceRoutes from './routes/invoices';
 import paymentRoutes from './routes/payments';
 import reminderRoutes from './routes/reminders';
 import webhookRoutes from './routes/webhooks';
+import dashboardRoutes from './routes/dashboard';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -86,6 +87,7 @@ app.use('/api/invoices', invoiceRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/reminders', reminderRoutes);
 app.use('/api/webhooks', webhookRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // 4. Catch-all for SPA (MUST be at the very end)
 app.get('*', (req, res) => {
