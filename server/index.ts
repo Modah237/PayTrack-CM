@@ -51,7 +51,12 @@ app.use(express.static(DIST_PATH));
 
 // 3. API Routes
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'PayTrack CM API is running.', env: process.env.NODE_ENV });
+  res.json({ 
+    status: 'ok', 
+    message: 'PayTrack CM API is running (Diagnostic Mode).', 
+    env: process.env.NODE_ENV,
+    time: new Date().toISOString()
+  });
 });
 
 app.get('/api/debug-files', (req, res) => {
@@ -98,7 +103,7 @@ cron.schedule('0 8 * * *', async () => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`[Server] PayTrack CM Backend running on port ${PORT}`);
+app.listen(Number(PORT), '0.0.0.0', () => {
+  console.log(`[Server] PayTrack CM Backend running on 0.0.0.0:${PORT}`);
   console.log(`[Cron] Reminders scheduled daily at 08:00`);
 });
