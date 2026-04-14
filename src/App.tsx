@@ -17,17 +17,22 @@ import { Toaster } from 'sonner';
 // ── Root router ───────────────────────────────────────────────────────────────
 
 export default function App() {
+  console.log("🛠️ [PayTrack] App component rendering...");
   const [activeTab, setActiveTab] = useState<'dashboard' | 'invoices' | 'clients' | 'payments' | 'reminders'>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    console.log("📡 [PayTrack] useEffect checking authentication...");
     const token = localStorage.getItem('paytrack_token');
+    console.log("🔑 [PayTrack] Token found:", !!token);
+    
     if (token) {
       setIsAuthenticated(true);
     }
     setIsLoading(false);
+    console.log("🏁 [PayTrack] Initial loading complete. Auth:", token ? "YES" : "NO");
 
     const handleAuthError = () => {
       setIsAuthenticated(false);
