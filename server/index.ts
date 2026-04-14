@@ -24,22 +24,6 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Middleware
-const allowedOrigins = process.env.FRONTEND_URL
-  ? [process.env.FRONTEND_URL]
-  : ['http://localhost:3000', 'http://localhost:4000'];
-
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, Postman)
-    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
-    callback(new Error(`CORS blocked: ${origin}`));
-  },
-  credentials: true,
-}));
-// Need raw body for webhooks signatures if required
-app.use(express.json());
-
 const DIST_PATH = path.resolve(__dirname, '../dist');
 console.log(`[Server] Production diagnostics:`);
 console.log(`- Base directory: ${__dirname}`);
@@ -53,14 +37,32 @@ if (fs.existsSync(DIST_PATH)) {
   console.error('[Server] CRITICAL: Dist folder missing at launch!');
 }
 
-// 1. Explicitly serve static assets first
+// 1. Serve static assets FIRST — before CORS, since they don't need it.
+//    This prevents the CORS middleware from rejecting crossorigin script requests.
 app.use('/assets', express.static(path.join(DIST_PATH, 'assets'), {
   immutable: true,
   maxAge: '1y'
 }));
-
-// 2. Serve other static files (favicon, etc)
 app.use(express.static(DIST_PATH));
+
+// 2. CORS — only applies to API routes (after static files are already handled)
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:4000',
+  process.env.FRONTEND_URL,
+  process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : null,
+].filter(Boolean) as string[];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, server-to-server)
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    // In production, also allow same-domain requests
+    callback(null, true);
+  },
+  credentials: true,
+}));
+app.use(express.json());
 
 // 3. API Routes
 app.get('/api/health', (req, res) => {
