@@ -1,0 +1,6 @@
+{
+  "name": "PayTrack CM",
+  "description": "Plateforme de Recouvrement Automatisé & Facturation pour PME Camerounaises. Gestion des créances, relances automatiques (WhatsApp/SMS) et encaissement MoMo.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
