@@ -46,6 +46,46 @@ router.post('/login', async (req: Request, res: Response) => {
   }
 });
 
+router.post('/signup', async (req: Request, res: Response) => {
+  const { email, password, name } = req.body;
+
+  try {
+    // Check if user already exists
+    const existingUser = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (existingUser.rows.length > 0) {
+      return res.status(400).json({ error: 'User already exists' });
+    }
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const password_hash = await bcrypt.hash(password, salt);
+
+    // Insert user
+    const { rows } = await db.query(
+      'INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3) RETURNING id, email, name, role',
+      [email, password_hash, name]
+    );
+
+    const user = rows[0];
+
+    // Generate JWT
+    const token = jwt.sign(
+      { id: user.id, email: user.email, name: user.name, role: user.role },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    res.status(201).json({
+      token,
+      user
+    });
+
+  } catch (error: any) {
+    console.error('Signup error:', error);
+    res.status(500).json({ error: 'An error occurred during registration' });
+  }
+});
+
 router.get('/me', requireAuth, (req: Request, res: Response) => {
   res.json({ user: (req as any).user });
 });

@@ -1,12 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { api } from '../lib/api';
 
 export interface AuthUser {
   id: string;
   email: string;
-  businessName: string;
-  phone: string;
-  plan: 'starter' | 'business' | 'pro' | null;
-  createdAt: string;
+  name: string;
+  role: string;
+  businessName?: string;
 }
 
 interface SignupData {
@@ -28,88 +28,53 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const STORAGE_KEY = 'paytrack_auth_user';
-
-function generateId(): string {
-  return Math.random().toString(36).substring(2, 11);
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+const USER_KEY = 'paytrack_user';
+const TOKEN_KEY = 'paytrack_token';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        setUser(JSON.parse(stored));
+    const storedUser = localStorage.getItem(USER_KEY);
+    const token = localStorage.getItem(TOKEN_KEY);
+    
+    if (storedUser && token) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        localStorage.removeItem(USER_KEY);
+        localStorage.removeItem(TOKEN_KEY);
       }
-    } catch {
-      localStorage.removeItem(STORAGE_KEY);
-    } finally {
-      setIsLoading(false);
     }
+    setIsLoading(false);
   }, []);
 
-  const persist = (u: AuthUser) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(u));
-    setUser(u);
-  };
-
-  const login = async (email: string, _password: string) => {
-    await sleep(800);
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const existing: AuthUser = JSON.parse(stored);
-      if (existing.email === email) {
-        setUser(existing);
-        return;
-      }
-    }
-    // Simulate valid login for demo
-    const u: AuthUser = {
-      id: generateId(),
-      email,
-      businessName: email.split('@')[0],
-      phone: '+237 600000000',
-      plan: 'business',
-      createdAt: new Date().toISOString(),
-    };
-    persist(u);
+  const login = async (email: string, password: string) => {
+    const { data } = await api.post('/auth/login', { email, password });
+    localStorage.setItem(TOKEN_KEY, data.token);
+    localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+    setUser(data.user);
   };
 
   const signup = async (data: SignupData) => {
-    await sleep(1200);
-    const u: AuthUser = {
-      id: generateId(),
+    const { data: resData } = await api.post('/auth/signup', {
       email: data.email,
-      businessName: data.businessName,
-      phone: data.phone,
-      plan: null,
-      createdAt: new Date().toISOString(),
-    };
-    persist(u);
+      password: data.password,
+      name: data.businessName
+    });
+    localStorage.setItem(TOKEN_KEY, resData.token);
+    localStorage.setItem(USER_KEY, JSON.stringify(resData.user));
+    setUser(resData.user);
   };
 
   const loginWithGoogle = async () => {
-    await sleep(600);
-    const u: AuthUser = {
-      id: generateId(),
-      email: 'user@gmail.com',
-      businessName: 'Mon Entreprise',
-      phone: '+237 600000000',
-      plan: null,
-      createdAt: new Date().toISOString(),
-    };
-    persist(u);
+    throw new Error('Google login not implemented');
   };
 
   const logout = () => {
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
     setUser(null);
   };
 

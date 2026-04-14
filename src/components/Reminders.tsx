@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Reminder, ReminderTone } from '../types';
+import { reminderScenarios } from '../mockData';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
 import { api } from '../lib/api';

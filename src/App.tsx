@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { Dashboard } from './components/Dashboard';
@@ -11,8 +12,11 @@ import { Invoices } from './components/Invoices';
 import { Clients } from './components/Clients';
 import { Reminders } from './components/Reminders';
 import { Payments } from './components/Payments';
-import { Login } from './components/Login';
 import { Toaster } from 'sonner';
+
+// Pages
+import LandingPage from './pages/LandingPage';
+import AuthPage from './pages/AuthPage';
 
 // ── Root router ───────────────────────────────────────────────────────────────
 
@@ -22,17 +26,16 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const location = useLocation();
 
   useEffect(() => {
     console.log("📡 [PayTrack] useEffect checking authentication...");
     const token = localStorage.getItem('paytrack_token');
-    console.log("🔑 [PayTrack] Token found:", !!token);
     
     if (token) {
       setIsAuthenticated(true);
     }
     setIsLoading(false);
-    console.log("🏁 [PayTrack] Initial loading complete. Auth:", token ? "YES" : "NO");
 
     const handleAuthError = () => {
       setIsAuthenticated(false);
@@ -49,54 +52,77 @@ export default function App() {
   };
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center bg-slate-50">Chargement...</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-500 font-medium">Chargement de PayTrack...</div>;
   }
 
-  if (!isAuthenticated) {
-    return (
-      <>
-        <Login onLoginSuccess={() => setIsAuthenticated(true)} />
-        <Toaster position="top-right" richColors />
-      </>
-    );
-  }
-
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'dashboard': return <Dashboard />;
-      case 'invoices': return <Invoices />;
-      case 'clients': return <Clients />;
-      case 'payments': return <Payments />;
-      case 'reminders': return <Reminders />;
-      default: return <Dashboard />;
+  // Dashboard Layout Wrapper
+  const DashboardLayout = () => {
+    if (!isAuthenticated) {
+      return <Navigate to="/login" state={{ from: location }} replace />;
     }
+
+    const renderContent = () => {
+      switch (activeTab) {
+        case 'dashboard': return <Dashboard />;
+        case 'invoices': return <Invoices />;
+        case 'clients': return <Clients />;
+        case 'payments': return <Payments />;
+        case 'reminders': return <Reminders />;
+        default: return <Dashboard />;
+      }
+    };
+
+    return (
+      <div className="flex h-screen bg-slate-50 font-sans antialiased overflow-hidden">
+        {/* Mobile overlay */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        <Sidebar 
+          activeTab={activeTab} 
+          setActiveTab={(tab) => { setActiveTab(tab as any); setSidebarOpen(false); }} 
+          onLogout={handleLogout}
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
+
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <Header onMenuClick={() => setSidebarOpen(true)} />
+          <main className="flex-1 overflow-y-auto bg-slate-50/50">
+            {renderContent()}
+          </main>
+        </div>
+      </div>
+    );
   };
 
   return (
-    <div className="flex h-screen bg-slate-50 font-sans antialiased overflow-hidden">
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
+    <>
+      <Routes>
+        {/* Public Marketing Website */}
+        <Route path="/" element={<LandingPage />} />
+        
+        {/* Auth Pages */}
+        <Route 
+          path="/login" 
+          element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <AuthPage />} 
         />
-      )}
+        <Route 
+          path="/signup" 
+          element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <AuthPage />} 
+        />
 
-      <Sidebar 
-        activeTab={activeTab} 
-        setActiveTab={(tab) => { setActiveTab(tab as any); setSidebarOpen(false); }} 
-        onLogout={handleLogout}
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-      />
-
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Header onMenuClick={() => setSidebarOpen(true)} />
-        <main className="flex-1 overflow-y-auto bg-slate-50/50">
-          {renderContent()}
-        </main>
-      </div>
+        {/* Protected Dashboard */}
+        <Route path="/dashboard" element={<DashboardLayout />} />
+        
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
       <Toaster position="top-right" richColors />
-    </div>
+    </>
   );
 }

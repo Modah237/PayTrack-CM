@@ -12,9 +12,10 @@ import { Input } from './ui/input';
 import { motion, AnimatePresence } from 'motion/react';
 import { InvoiceStatus } from '../types';
 import {
-  ResponsiveContainer, PieChart, Pie, Cell
+  ResponsiveContainer, PieChart, Pie, Cell,
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip
 } from 'recharts';
-import { chartData } from '../mockData'; // keep static chartData for now
+import { chartData, mockStats } from '../mockData'; // keep static chartData for now
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
 import { api } from '../lib/api';

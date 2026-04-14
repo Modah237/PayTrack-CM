@@ -1,7 +1,9 @@
+import React, { useState } from 'react';
 import {
   Users, Search, Filter, Mail, Phone, MapPin, Building2, TrendingUp,
   ChevronRight, MoreHorizontal, Download, Star, CheckCircle2,
-  MessageCircle, Clock, FileText, X, Plus, Loader2
+  MessageCircle, Clock, FileText, X, Plus, Loader2,
+  AlertTriangle, TrendingDown, ChevronUp, ChevronDown
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { Badge } from './ui/badge';
