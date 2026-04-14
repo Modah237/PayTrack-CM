@@ -14,7 +14,7 @@
     "db:migrate": "tsx server/db/migrate.ts",
     "db:seed": "tsx server/db/seed.ts",
     "dev:all": "concurrently \"npm run dev\" \"npm run server\"",
-    "start": "node --import tsx server/index.ts"
+    "start": "node --import tsx server/db/migrate.ts && node --import tsx server/index.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.0",
