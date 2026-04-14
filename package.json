@@ -10,11 +10,11 @@
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
     "server": "tsx watch server/index.ts",
-    "server:prod": "node --loader tsx/esm server/index.ts",
+    "server:prod": "node --import tsx/esm server/index.ts",
     "db:migrate": "tsx server/db/migrate.ts",
     "db:seed": "tsx server/db/seed.ts",
     "dev:all": "concurrently \"npm run dev\" \"npm run server\"",
-    "start": "node --loader tsx/esm server/index.ts"
+    "start": "node --import tsx/esm server/index.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.0",
