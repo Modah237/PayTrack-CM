@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 const WHATSAPP_API_URL = process.env.WHATSAPP_API_URL || 'https://waba.360dialog.io/v1/messages';
-const WHATSAPP_D360_API_KEY = process.env.WHATSAPP_D360_API_KEY || '';
+// Aligned with .env.example: WHATSAPP_API_KEY (also accepts legacy WHATSAPP_D360_API_KEY)
+const WHATSAPP_D360_API_KEY = process.env.WHATSAPP_API_KEY || process.env.WHATSAPP_D360_API_KEY || '';
 
 export const getReminderMessage = (
   clientName: string,

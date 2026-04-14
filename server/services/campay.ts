@@ -1,8 +1,9 @@
 import axios from 'axios';
 
 const CAMPAY_API_URL = process.env.CAMPAY_API_URL || 'https://demo.campay.net/api';
-const CAMPAY_APP_USERNAME = process.env.CAMPAY_APP_USERNAME || '';
-const CAMPAY_APP_PASSWORD = process.env.CAMPAY_APP_PASSWORD || '';
+// Env vars aligned with .env.example: CAMPAY_USERNAME / CAMPAY_PASSWORD
+const CAMPAY_APP_USERNAME = process.env.CAMPAY_USERNAME || process.env.CAMPAY_APP_USERNAME || '';
+const CAMPAY_APP_PASSWORD = process.env.CAMPAY_PASSWORD || process.env.CAMPAY_APP_PASSWORD || '';
 
 let cachedToken: string | null = null;
 let tokenExpiryTime = 0;

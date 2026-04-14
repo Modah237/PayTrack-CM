@@ -11,8 +11,8 @@ const pool = new Pool({
 });
 
 pool.on('error', (err) => {
-  console.error('Unexpected error on idle pg client', err);
-  process.exit(-1);
+  // Log but do NOT exit — Railway handles restarts, crashing on idle errors is too aggressive
+  console.error('[DB] Unexpected error on idle pg client:', err.message);
 });
 
 export const db = {

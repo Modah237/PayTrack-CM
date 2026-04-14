@@ -3,6 +3,7 @@ import { LayoutDashboard, FileText, Users, Bell, Settings, LogOut, CreditCard, X
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 interface SidebarProps {
   activeTab: string;
@@ -32,18 +33,21 @@ function getInitials(name: string): string {
 
 export function Sidebar({ activeTab, setActiveTab, isOpen = false, onClose, onLogout }: SidebarProps) {
   const navigate = useNavigate();
+  const { user, logout: ctxLogout } = useAuth();
 
   const handleSignOut = () => {
     if (onLogout) {
       onLogout();
     } else {
-      navigate('/');
+      ctxLogout();
     }
+    navigate('/');
   };
 
-  const plan = 'pro';
-  const planMeta = planConfig[plan] || { label: 'Essai', className: 'bg-emerald-600/20 text-emerald-400' };
-  const initials = 'U';
+  const plan = (user as any)?.plan ?? null;
+  const planMeta = plan ? (planConfig[plan] ?? { label: 'Essai', className: 'bg-emerald-600/20 text-emerald-400' }) : { label: 'Essai', className: 'bg-emerald-600/20 text-emerald-400' };
+  const displayName = user?.name || user?.email || 'Mon Entreprise';
+  const initials = displayName.split(' ').slice(0, 2).map((w: string) => w[0]?.toUpperCase() ?? '').join('') || 'U';
 
   return (
     <aside
@@ -98,7 +102,7 @@ export function Sidebar({ activeTab, setActiveTab, isOpen = false, onClose, onLo
           </div>
           <div className="flex flex-col overflow-hidden flex-1 min-w-0">
             <span className="text-sm font-semibold text-white truncate">
-              Mon Entreprise
+              {displayName}
             </span>
             <span className={cn('text-[10px] font-bold px-1.5 py-0.5 rounded-full w-fit mt-0.5', planMeta.className)}>
               {planMeta.label}

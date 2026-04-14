@@ -28,7 +28,7 @@ export function Header({ onMenuClick }: HeaderProps) {
 
   const plan = user?.plan ?? null;
   const planMeta = plan ? planConfig[plan] : null;
-  const initials = user ? getInitials(user.businessName || user.email) : 'U';
+  const initials = user ? getInitials(user.name || user.email) : 'U';
 
   return (
     <header className="h-16 bg-white border-b border-slate-100 flex items-center px-4 sm:px-6 gap-3 shrink-0 z-10 sticky top-0">
