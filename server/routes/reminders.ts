@@ -9,7 +9,7 @@ router.use(requireAuth);
 router.get('/', async (req: Request, res: Response) => {
   try {
     const { rows } = await db.query(`
-      SELECT r.*, i.invoice_number, i.dueDate as due_date, c.name as client_name, c.phone as client_phone
+      SELECT r.*, i.invoice_number, i.due_date, c.name as client_name, c.phone as client_phone
       FROM reminders r
       JOIN invoices i ON r.invoice_id = i.id
       JOIN clients c ON i.client_id = c.id
